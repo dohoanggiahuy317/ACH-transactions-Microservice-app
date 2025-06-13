@@ -20,3 +20,9 @@ Remove everything and set up makefile to create empty container and db inside th
 
 # 6. Migrate to the simple-bank
 migrate -path db/migration -database "postgresql://root:secret@localhost:55432/simple_bank?sslmode=disable" -verbose up
+
+
+
+# Set up for the unit test
+go get github.com/lib/pq
+go get github.com/stretchr/testify/require
