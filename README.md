@@ -22,7 +22,13 @@ Remove everything and set up makefile to create empty container and db inside th
 migrate -path db/migration -database "postgresql://root:secret@localhost:55432/simple_bank?sslmode=disable" -verbose up
 
 
-
-# Set up for the unit test
+# 7. Set up for the unit test
 go get github.com/lib/pq
 go get github.com/stretchr/testify/require
+
+# 8 implement DB transaction -> automatic
+
+# 9 prevent deadlock for account update balance
+edit the sql script to add
+GetAccount `FOR UPDATE` to make sure to release the db after one query done commit
+2 tables get connected by one key -> the insert into table 1 can block the select from the table 2

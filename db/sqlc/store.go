@@ -62,6 +62,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
+		// Create transfer and entries within the transaction
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountID,
 			ToAccountID:   arg.ToAccountID,
@@ -71,6 +72,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
+		// Create entries for the transfer
 		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountID,
 			Amount:    -arg.Amount,
@@ -87,21 +89,49 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		// result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
-		// 	ID:      arg.FromAccountID,
-		// 	Balance: -arg.Amount,
-		// })
-		// if err != nil {
-		// 	return err
-		// }
-
-		// result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
-		// 	ID:      arg.ToAccountID,
-		// 	Balance: arg.Amount,
-		// })
+		// UPDATE THE BALANCE OF THE TO ACCOUNT WITH LOCKING
+		if arg.FromAccountID < arg.ToAccountID {
+			result.FromAccount, result.ToAccount, err = addMoney(
+				ctx,
+				q,
+				arg.FromAccountID, arg.Amount * -1,
+				arg.ToAccountID, arg.Amount)
+		} else {
+			result.ToAccount, result.FromAccount, err = addMoney(
+				ctx,
+				q,
+				arg.ToAccountID, arg.Amount,
+				arg.FromAccountID, arg.Amount * -1)
+		}
 		
 		return err
 	})
 
 	return result, err
+}
+
+
+func addMoney (
+	ctx context.Context,
+	q *Queries,
+	accountID1 int64,
+	amount1 int64,
+	accountID2 int64,
+	amount2 int64,
+) (account1 Account, account2 Account, err error) {
+	account1, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		ID:     accountID1,
+		Amount: amount1,
+	})
+	if err != nil {
+		return
+	}
+	account2, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		ID:     accountID2,
+		Amount: amount2,
+	})
+	if err != nil {
+		return
+	}
+	return
 }
