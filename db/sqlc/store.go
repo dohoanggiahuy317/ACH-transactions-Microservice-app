@@ -1,3 +1,7 @@
+// Header: This file is use to implement the Store interface for executing SQL queries and transactions.
+// It provides methods for creating transfers, managing accounts, and handling transactions.
+// This file serves as the main entry point for database operations in the application.
+
 package db
 
 import (
@@ -110,7 +114,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 	return result, err
 }
 
-
+// addMoney transfers money between two accounts.
 func addMoney (
 	ctx context.Context,
 	q *Queries,

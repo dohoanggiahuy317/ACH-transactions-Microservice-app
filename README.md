@@ -32,3 +32,12 @@ go get github.com/stretchr/testify/require
 edit the sql script to add
 GetAccount `FOR UPDATE` to make sure to release the db after one query done commit
 2 tables get connected by one key -> the insert into table 1 can block the select from the table 2
+
+# 10 Create the CI workflows with github actions 
+Set up the go
+install go migrate
+
+## 11 Implement HTTP API
+create API folder and set the API using Gin
+use postman
+emit empty slice in sql to handle empty request
