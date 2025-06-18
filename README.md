@@ -37,7 +37,9 @@ GetAccount `FOR UPDATE` to make sure to release the db after one query done comm
 Set up the go
 install go migrate
 
-## 11 Implement HTTP API
+# 11 Implement HTTP API
 create API folder and set the API using Gin
 use postman
 emit empty slice in sql to handle empty request
+
+# load environment variable for more secure
