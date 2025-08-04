@@ -1,6 +1,13 @@
-// Header: This file is use to implement the Store interface for executing SQL queries and transactions.
-// It provides methods for creating transfers, managing accounts, and handling transactions.
-// This file serves as the main entry point for database operations in the application.
+// Documentation:
+// This file defines the Store interface and its implementation 
+// for executing SQL queries and managing database transactions.
+//
+// IT PROVIDES A UNIFIED ENTRY POINT FOR ALL DATABASE OPERATIONS, 
+// including account management and money transfers.
+//
+// The Store abstraction enables transactional operations and encapsulates 
+// the logic for handling complex database workflows.
+// ------------------------------------------------------------------------------------------------
 
 package db
 
@@ -10,22 +17,29 @@ import (
 	"fmt"
 )
 
+// Store provides an interface for executing SQL queries and transactions.
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
+
 // Store provides all functions to execute SQL queries and transactions.
-type Store struct {
+type SQLStore struct {
+	db *sql.DB
 	*Queries
-	db  *sql.DB
 }
 
 // NewStore creates a new Store instance.
-func NewStore(db *sql.DB) *Store {
-	return &Store{
-		Queries: New(db),
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
+		Queries: New(db),
 	}
 }
 
 // execTx executes a function within a database transaction.
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -33,6 +47,9 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 
 	q := New(tx)
 	err = fn(q)
+
+	// If there is an error, rollback the transaction
+	// This is to ensure that the database is not left in an inconsistent state
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
 			return fmt.Errorf("tx err: %v, rb err: %v", err, rbErr)
@@ -60,7 +77,7 @@ type TransferTxResult struct {
 }
 
 // TransferTx performs a money transfer from one account to another.
-func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -113,6 +130,10 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 
 	return result, err
 }
+
+// ------------------------------------------------------------------------------------------------
+
+
 
 // addMoney transfers money between two accounts.
 func addMoney (
