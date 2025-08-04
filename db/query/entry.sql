@@ -14,4 +14,5 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM entries
 WHERE account_id = $1
 ORDER BY id
-LIMIT $2 OFFSET $3;
+LIMIT $2
+OFFSET $3;

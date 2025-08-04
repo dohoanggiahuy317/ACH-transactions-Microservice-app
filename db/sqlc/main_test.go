@@ -1,34 +1,28 @@
 package db
 
 import (
-	"database/sql"
+	"context"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/dohoanggiahuy317/ACH-transactions-Microservice-app/db/util"
-	_ "github.com/lib/pq"
+	"github.com/dohoanggiahuy317/achtransactions/util"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var testQueries *Queries
-var testDB *sql.DB
+var testStore Store
 
 func TestMain(m *testing.M) {
 	config, err := util.LoadConfig("../..")
 	if err != nil {
-		log.Fatalf("cannot load config: %v", err)
+		log.Fatal("cannot load config:", err)
 	}
 
-	// Initialize the database connection
-	testDB, err = sql.Open(config.DBDriver, config.DBSource)
-
+	connPool, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
-		log.Fatalf("failed to connect to database: %v", err)
+		log.Fatal("cannot connect to db:", err)
 	}
 
-	// Initialize the test queries
-	testQueries = New(testDB)
-
-	// Run the tests
+	testStore = NewStore(connPool)
 	os.Exit(m.Run())
 }
